@@ -12,8 +12,8 @@ from datetime import datetime
 WECOM_WEBHOOK_URL = os.environ.get("WECOM_WEBHOOK_URL", "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=PLACEHOLDER")
 
 # 监控指标的基线 (Baseline) 和阈值 (Threshold)
-# 涨幅超过 10% 报警
-ALERT_THRESHOLD_PCT = 10.0
+# 涨幅超过 3% 报警
+ALERT_THRESHOLD_PCT = 3.0
 
 SERIES_CONFIG = {
     "BAMLH0A0HYM2": {
