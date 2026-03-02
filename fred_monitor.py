@@ -19,12 +19,12 @@ SERIES_CONFIG = {
     "BAMLH0A0HYM2": {
         "name": "ICE BofA US High Yield Index OAS",
         "baseline": 2.88,
-        “date”:2026-02-19,
+        "baseline_date": "2026-02-19" # 请根据实际基准日期修改
     },
     "BAMLH0A3HYC": {
         "name": "ICE BofA CCC and Lower US High Yield Index OAS",
         "baseline": 8.88,
-        “date”:2026-02-19,
+        "baseline_date": "2026-02-19" # 请根据实际基准日期修改
     }
 }
 
@@ -82,6 +82,7 @@ def main():
     
     for series_id, config in SERIES_CONFIG.items():
         baseline = config["baseline"]
+        baseline_date = config.get("baseline_date", "N/A")
         name = config["name"]
         
         date_latest, current_val = fetch_latest_fred_data(series_id)
@@ -89,7 +90,7 @@ def main():
         if current_val is None:
             continue
             
-        print(f"[{datetime.now()}] {series_id} ({date_latest}): {current_val} (Baseline: {baseline})")
+        print(f"[{datetime.now()}] {series_id} ({date_latest}): {current_val} (Baseline: {baseline} on {baseline_date})")
         
         pct_change = ((current_val - baseline) / baseline) * 100
         
@@ -100,7 +101,7 @@ def main():
                 f"> 指标名称：**{name}**\n"
                 f"> 最新日期：{date_latest}\n"
                 f"> 最新数值：**{current_val} %**\n"
-                f"> 基准数值：{baseline} %\n"
+                f"> 基准数值：{baseline} % ({baseline_date})\n"
                 f"> 累计涨幅：<font color='warning'>{pct_change:.2f}%</font>\n"
                 f"[查看原始图表](https://fred.stlouisfed.org/series/{series_id})"
             )
@@ -110,7 +111,7 @@ def main():
                 f"> 指标名称：**{name}**\n"
                 f"> 最新日期：{date_latest}\n"
                 f"> 最新数值：**<font color='info'>{current_val} %</font>**\n"
-                f"> 基准数值：{baseline} %\n"
+                f"> 基准数值：{baseline} % ({baseline_date})\n"
                 f"> 累计涨幅：<font color='info'>{pct_change:.2f}%</font>\n"
                 f"[查看原始图表](https://fred.stlouisfed.org/series/{series_id})"
             )
