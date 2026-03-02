@@ -59,7 +59,7 @@ def send_wecom_notification(message):
         print(f"[{datetime.now()}] Webhook URL 是占位符，跳过发送消息。消息内容:\n{message}")
         return False
         
-    data = {"msgtype": "markdown", "markdown": {"content": message}}
+    data = {"msgtype": "text", "text": {"content": message}}
     req = urllib.request.Request(WECOM_WEBHOOK_URL, data=json.dumps(data).encode('utf-8'), method="POST")
     req.add_header('Content-Type', 'application/json')
     
@@ -97,28 +97,28 @@ def main():
         if pct_change >= ALERT_THRESHOLD_PCT:
             has_alert = True
             messages.append(
-                f"**<font color='warning'>警报：{series_id} 涨幅超过 {ALERT_THRESHOLD_PCT}%！</font>**\n"
-                f"> 指标名称：**{name}**\n"
-                f"> 最新日期：{date_latest}\n"
-                f"> 最新数值：**{current_val} %**\n"
-                f"> 基准数值：{baseline} % ({baseline_date})\n"
-                f"> 累计涨幅：<font color='warning'>{pct_change:.2f}%</font>\n"
-                f"[查看原始图表](https://fred.stlouisfed.org/series/{series_id})"
+                f"【警报：{series_id} 涨幅超过 {ALERT_THRESHOLD_PCT}%！】\n"
+                f"指标名称：{name}\n"
+                f"最新日期：{date_latest}\n"
+                f"最新数值：{current_val} %\n"
+                f"基准数值：{baseline} % ({baseline_date})\n"
+                f"累计涨幅：{pct_change:.2f}%\n"
+                f"查看原始图表：https://fred.stlouisfed.org/series/{series_id}"
             )
         else:
             messages.append(
-                f"**日常播报：{series_id}**\n"
-                f"> 指标名称：**{name}**\n"
-                f"> 最新日期：{date_latest}\n"
-                f"> 最新数值：**<font color='info'>{current_val} %</font>**\n"
-                f"> 基准数值：{baseline} % ({baseline_date})\n"
-                f"> 累计涨幅：<font color='info'>{pct_change:.2f}%</font>\n"
-                f"[查看原始图表](https://fred.stlouisfed.org/series/{series_id})"
+                f"【日常播报：{series_id}】\n"
+                f"指标名称：{name}\n"
+                f"最新日期：{date_latest}\n"
+                f"最新数值：{current_val} %\n"
+                f"基准数值：{baseline} % ({baseline_date})\n"
+                f"累计涨幅：{pct_change:.2f}%\n"
+                f"查看原始图表：https://fred.stlouisfed.org/series/{series_id}"
             )
             
     if messages:
-        header = "### 📊 FRED 高收益债利差预警\n\n" if has_alert else "### 📊 FRED 高收益债利差日常播报\n\n"
-        final_message = header + "\n---\n".join(messages)
+        header = "📊 FRED 高收益债利差预警\n\n" if has_alert else "📊 FRED 高收益债利差日常播报\n\n"
+        final_message = header + "\n--------------------\n".join(messages)
         send_wecom_notification(final_message)
 
 if __name__ == "__main__":
