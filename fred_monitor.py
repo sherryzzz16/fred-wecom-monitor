@@ -12,17 +12,19 @@ from datetime import datetime
 WECOM_WEBHOOK_URL = os.environ.get("WECOM_WEBHOOK_URL", "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=PLACEHOLDER")
 
 # 监控指标的基线 (Baseline) 和阈值 (Threshold)
-# 涨幅超过 3% 报警
-ALERT_THRESHOLD_PCT = 3.0
+# 涨幅超过 10% 报警
+ALERT_THRESHOLD_PCT = 10.0
 
 SERIES_CONFIG = {
     "BAMLH0A0HYM2": {
         "name": "ICE BofA US High Yield Index OAS",
         "baseline": 2.88,
+        “date”:2026-02-19,
     },
     "BAMLH0A3HYC": {
         "name": "ICE BofA CCC and Lower US High Yield Index OAS",
         "baseline": 8.88,
+        “date”:2026-02-19,
     }
 }
 
