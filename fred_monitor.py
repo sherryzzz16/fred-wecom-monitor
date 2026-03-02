@@ -75,7 +75,8 @@ def send_wecom_notification(message):
         return False
 
 def main():
-    alerts = []
+    messages = []
+    has_alert = False
     
     for series_id, config in SERIES_CONFIG.items():
         baseline = config["baseline"]
@@ -91,19 +92,31 @@ def main():
         pct_change = ((current_val - baseline) / baseline) * 100
         
         if pct_change >= ALERT_THRESHOLD_PCT:
-            alerts.append(
+            has_alert = True
+            messages.append(
                 f"**<font color='warning'>警报：{series_id} 涨幅超过 {ALERT_THRESHOLD_PCT}%！</font>**\n"
                 f"> 指标名称：**{name}**\n"
                 f"> 最新日期：{date_latest}\n"
                 f"> 最新数值：**{current_val} %**\n"
                 f"> 基准数值：{baseline} %\n"
-                f"> 累计涨幅：<font color='comment'>{pct_change:.2f}%</font>\n"
+                f"> 累计涨幅：<font color='warning'>{pct_change:.2f}%</font>\n"
+                f"[查看原始图表](https://fred.stlouisfed.org/series/{series_id})"
+            )
+        else:
+            messages.append(
+                f"**日常播报：{series_id}**\n"
+                f"> 指标名称：**{name}**\n"
+                f"> 最新日期：{date_latest}\n"
+                f"> 最新数值：**<font color='info'>{current_val} %</font>**\n"
+                f"> 基准数值：{baseline} %\n"
+                f"> 累计涨幅：<font color='info'>{pct_change:.2f}%</font>\n"
                 f"[查看原始图表](https://fred.stlouisfed.org/series/{series_id})"
             )
             
-    if alerts:
-        message = "### 📊 \bFRED 高收益债利差预警\n\n" + "\n---\n".join(alerts)
-        send_wecom_notification(message)
+    if messages:
+        header = "### 📊 FRED 高收益债利差预警\n\n" if has_alert else "### 📊 FRED 高收益债利差日常播报\n\n"
+        final_message = header + "\n---\n".join(messages)
+        send_wecom_notification(final_message)
 
 if __name__ == "__main__":
     main()
