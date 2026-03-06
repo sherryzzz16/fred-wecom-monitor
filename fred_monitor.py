@@ -38,6 +38,8 @@ def fetch_latest_fred_data(series_id):
     try:
         result = subprocess.run(["curl", "-s", url], capture_output=True, text=True, timeout=30)
         lines = result.stdout.splitlines()
+        
+        valid_data_points = []
         # 从最后几行开始找有效数据 (防止最新一天是 . 代表缺失)
         for line in reversed(lines):
             parts = line.split(',')
@@ -45,13 +47,21 @@ def fetch_latest_fred_data(series_id):
                 try:
                     date_str = parts[0].strip()
                     value = float(parts[1].strip())
-                    return date_str, value
+                    valid_data_points.append((date_str, value))
+                    if len(valid_data_points) == 2:
+                        break
                 except ValueError:
                     continue
+                    
+        if len(valid_data_points) >= 2:
+            return valid_data_points[0][0], valid_data_points[0][1], valid_data_points[1][0], valid_data_points[1][1]
+        elif len(valid_data_points) == 1:
+            return valid_data_points[0][0], valid_data_points[0][1], None, None
+            
     except Exception as e:
         print(f"[{datetime.now()}] 抓取 {series_id} 失败: {e}", file=sys.stderr)
         
-    return None, None
+    return None, None, None, None
 
 def send_wecom_notification(message):
     """发送企业微信消息。"""
@@ -85,7 +95,7 @@ def main():
         baseline_date = config.get("baseline_date", "N/A")
         name = config["name"]
         
-        date_latest, current_val = fetch_latest_fred_data(series_id)
+        date_latest, current_val, date_prev, prev_val = fetch_latest_fred_data(series_id)
         
         if current_val is None:
             continue
@@ -94,6 +104,12 @@ def main():
         
         pct_change = ((current_val - baseline) / baseline) * 100
         
+        daily_change_str = ""
+        if prev_val is not None:
+            abs_change = current_val - prev_val
+            daily_pct_change = (abs_change / prev_val) * 100
+            daily_change_str = f"前日数值：{prev_val} % ({date_prev})\n单日变动：{abs_change:+.2f} 个百分点 ({daily_pct_change:+.2f}%)\n"
+        
         if pct_change >= ALERT_THRESHOLD_PCT:
             has_alert = True
             messages.append(
@@ -101,6 +117,7 @@ def main():
                 f"指标名称：{name}\n"
                 f"最新日期：{date_latest}\n"
                 f"最新数值：{current_val} %\n"
+                f"{daily_change_str}"
                 f"基准数值：{baseline} % ({baseline_date})\n"
                 f"累计涨幅：{pct_change:.2f}%\n"
                 f"查看原始图表：https://fred.stlouisfed.org/series/{series_id}"
@@ -111,6 +128,7 @@ def main():
                 f"指标名称：{name}\n"
                 f"最新日期：{date_latest}\n"
                 f"最新数值：{current_val} %\n"
+                f"{daily_change_str}"
                 f"基准数值：{baseline} % ({baseline_date})\n"
                 f"累计涨幅：{pct_change:.2f}%\n"
                 f"查看原始图表：https://fred.stlouisfed.org/series/{series_id}"
